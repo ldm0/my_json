@@ -63,32 +63,32 @@ static int is_digit(char c)
 			|| c == '9');
 }
 
-static inline void object_init(struct Object * const object)
+static inline void object_init(struct my_json_object * const object)
 {
-	object->root = (struct Pair *)0;
+	object->root = (struct my_json_pair *)0;
 }
 
-static inline void array_node_init(struct Array_node *const array_node)
+static inline void array_node_init(struct my_json_array_node *const array_node)
 {
-	memset(array_node, 0, sizeof(struct Array_node));
+	memset(array_node, 0, sizeof(struct my_json_array_node));
 }
 
-static inline void array_init(struct Array * const array)
+static inline void array_init(struct my_json_array * const array)
 {
-	array->root = (struct Array_node*)0;
+	array->root = (struct my_json_array_node*)0;
 }
 
-static inline void string_init(struct String * const string)
+static inline void string_init(struct my_json_string * const string)
 {
-	memset(string, 0, sizeof(struct String));
+	memset(string, 0, sizeof(struct my_json_string));
 }
 
-static inline void pair_init(struct Pair *const pair)
+static inline void pair_init(struct my_json_pair *const pair)
 {
-	memset(pair, 0, sizeof(struct Pair));
+	memset(pair, 0, sizeof(struct my_json_pair));
 }
 
-static int string_pushback(struct String *const string, char new_char)
+static int string_pushback(struct my_json_string *const string, char new_char)
 {
 	if (string->capacity == 0) {
 		string->capacity = DEFAULT_STRING_CAPACITY;
@@ -184,7 +184,7 @@ error:
 	return MY_JSON_STATE_ERROR;
 }
 
-static enum MY_JSON_STATE parse_string(struct String * const string, const char * const json)
+static enum MY_JSON_STATE parse_string(struct my_json_string * const string, const char * const json)
 {
 	if (json[ptr] != '"')
 		goto error;
@@ -211,7 +211,7 @@ error:
 	return MY_JSON_STATE_ERROR;
 }
 
-static enum MY_JSON_STATE parse_number(enum JSON_TYPE * type, union Value * value, const char * const json)
+static enum MY_JSON_STATE parse_number(enum MY_JSON_TYPE * type, union my_json_value * value, const char * const json)
 {
 	assert(json[ptr] == '-' || is_digit(json[ptr]));
 	// for overflow test and the possibility of double result, use the large int
@@ -338,10 +338,10 @@ error:
 
 
 // Pre-declaration, for the function call parse_array and parse_object in parse_value
-enum MY_JSON_STATE parse_array(struct Array * const _array, const char * const json);
-enum MY_JSON_STATE parse_object(struct Object * const object, const char * const json);
+static enum MY_JSON_STATE parse_array(struct my_json_array * const _array, const char * const json);
+static enum MY_JSON_STATE parse_object(struct my_json_object * const object, const char * const json);
 
-static enum MY_JSON_STATE parse_value(enum JSON_TYPE * type, union Value * value, const char * const json)
+static enum MY_JSON_STATE parse_value(enum MY_JSON_TYPE * type, union my_json_value * value, const char * const json)
 {
 	if (json[ptr] == 'n') {
 		*type = JSON_TYPE_NULL;
@@ -357,7 +357,7 @@ static enum MY_JSON_STATE parse_value(enum JSON_TYPE * type, union Value * value
 			goto error;
 	} else if (json[ptr] == '{') {
 		*type = JSON_TYPE_OBJECT;
-		value->val_object.root = (struct Pair *)malloc(sizeof(struct Pair));
+		value->val_object.root = (struct my_json_pair *)malloc(sizeof(struct my_json_pair));
 		pair_init(value->val_object.root);
 		if (parse_object(&(value->val_object), json) == MY_JSON_STATE_ERROR)
 			goto error;
@@ -384,7 +384,7 @@ error:
 	return MY_JSON_STATE_ERROR;
 }
 
-static enum MY_JSON_STATE parse_array(struct Array * const _array, const char * const json)
+static enum MY_JSON_STATE parse_array(struct my_json_array * const _array, const char * const json)
 {
 	if (json[ptr] != '[')
 		goto error;
@@ -392,10 +392,10 @@ static enum MY_JSON_STATE parse_array(struct Array * const _array, const char * 
 	++ptr;
 
 	ws_remove(json);
-	struct Array_node ** it = &(_array->root);
+	struct my_json_array_node ** it = &(_array->root);
 	// check type
 	while (json[ptr] != ']') {
-		*it = (struct Array_node *)malloc(sizeof(struct Array_node));
+		*it = (struct my_json_array_node *)malloc(sizeof(struct my_json_array_node));
 		if (!*it)
 			goto error;
 		array_node_init(*it);
@@ -432,7 +432,7 @@ error:
 	return MY_JSON_STATE_ERROR;
 }
 
-static enum MY_JSON_STATE parse_object(struct Object *const object, const char * const json)
+static enum MY_JSON_STATE parse_object(struct my_json_object *const object, const char * const json)
 {
 	assert(json[ptr] == '{');
 	if (json[ptr] != '{')
@@ -440,12 +440,12 @@ static enum MY_JSON_STATE parse_object(struct Object *const object, const char *
 	// pass the '{'
 	++ptr;
 
-	struct Pair ** it = &(object->root);
+	struct my_json_pair ** it = &(object->root);
 
 	ws_remove(json);
 	while (json[ptr] != '}') {
 		// parse the key of the pair
-		*it = (struct Pair *)malloc(sizeof(struct Pair));
+		*it = (struct my_json_pair *)malloc(sizeof(struct my_json_pair));
 		if (!(*it))
 			goto error;
 		pair_init(*it);
@@ -487,7 +487,7 @@ error:
 	return MY_JSON_STATE_ERROR;
 }
 
-enum MY_JSON_STATE json_parse(struct Pair *const root, const char * const json)
+enum MY_JSON_STATE my_json_parse(struct my_json_pair *const root, const char * const json)
 {
 	ptr = 0;
 	ws_remove(json);
@@ -508,4 +508,81 @@ enum MY_JSON_STATE json_parse(struct Pair *const root, const char * const json)
 	return MY_JSON_STATE_OK;
 error:
 	return MY_JSON_STATE_ERROR;
+}
+
+static void string_free(struct my_json_string *string);
+static void array_node_free(struct my_json_array_node *array_node);
+static void array_free(struct my_json_array *array);
+static void pair_free(struct my_json_pair *pair);
+static void object_free(struct my_json_object *object);
+static void value_free(enum MY_JSON_TYPE type, union my_json_value *value);
+
+static void value_free(enum MY_JSON_TYPE type, union my_json_value *value)
+{
+	switch (type) {
+	case JSON_TYPE_OBJECT:
+		object_free(&(value->val_object));
+		break;
+	case JSON_TYPE_ARRAY:
+		array_free(&(value->val_array));
+		break;
+	case JSON_TYPE_STRING:
+		string_free(&(value->val_string));
+		break;
+	}
+}
+
+static void string_free(struct my_json_string *string)
+{
+	free(string->c_str);
+}
+
+static void array_node_free(struct my_json_array_node *array_node)
+{
+	struct my_json_array_node *next = array_node->next;
+	if (next) {
+		array_node_free(next);
+		free(next);
+	}
+	value_free(array_node->type, &(array_node->value));
+}
+
+static void array_free(struct my_json_array *array)
+{
+	struct my_json_array_node *root = array->root;
+	if (root) {
+		array_node_free(root);
+		free(root);
+	}
+}
+
+static void pair_free(struct my_json_pair *pair)
+{
+	struct my_json_pair *next = pair->next;
+	if (next) {
+		pair_free(next);
+		free(next);
+	}
+	string_free(&(pair->key));
+	value_free(pair->type, &(pair->value));
+}
+
+static void object_free(struct my_json_object *object)
+{
+	struct my_json_pair *root = object->root;
+	if (root) {
+		pair_free(root);
+		free(root);
+	}
+}
+
+void my_json_free(struct my_json_pair * const root)
+{
+	if (root->type == JSON_TYPE_OBJECT) {
+		object_free(&(root->value.val_object));
+	} else if (root->type == JSON_TYPE_ARRAY) {
+		array_free(&(root->value.val_array));
+	} else if (root->type == JSON_TYPE_STRING) {		//actually not possible
+		string_free(&(root->value.val_string));
+	}
 }

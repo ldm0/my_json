@@ -49,7 +49,7 @@ static int pass_count = 0;
 
 
 
-// These tests are per function test during development.
+// These tests are single unit test during development.
 // If test, delete static in source code before individual functions
 #ifdef IN_DEVELOPMENT
 
@@ -229,8 +229,8 @@ void test_true_false_null()
 
 void test_parse_json()
 {
-	struct Pair root;
-	ASSERT_EQUAL_INT(MY_JSON_STATE_OK, json_parse(&root, "[666, 777, 888, 999, 111]"));
+	struct my_json_pair root;
+	ASSERT_EQUAL_INT(MY_JSON_STATE_OK, my_json_parse(&root, "[666, 777, 888, 999, 111]"));
 	ASSERT_EQUAL_INT(JSON_TYPE_ARRAY, root.type);
 	ASSERT_EQUAL_INT(JSON_TYPE_INT, root.value.val_array.root->type);
 	ASSERT_EQUAL_INT(666, root.value.val_array.root->value.val_int);
@@ -247,19 +247,19 @@ void test_parse_json()
 void test_write_json()
 {
 	char buffer[JSON_BUFFER_LENGTH];
-	struct Pair root;
-	ASSERT_EQUAL_INT(MY_JSON_STATE_OK, json_parse(&root, "[666, 777, 888, 999, 111]"));
-	ASSERT_EQUAL_INT(MY_JSON_STATE_OK, json_write(&root, buffer, JSON_BUFFER_LENGTH));
+	struct my_json_pair root;
+	ASSERT_EQUAL_INT(MY_JSON_STATE_OK, my_json_parse(&root, "[666, 777, 888, 999, 111]"));
+	ASSERT_EQUAL_INT(MY_JSON_STATE_OK, my_json_write(&root, buffer, JSON_BUFFER_LENGTH));
 	ASSERT_EQUAL_INT(0, strcmp(buffer, "[666, 777, 888, 999, 111]"));
 }
 
 void test_parse_write_json()
 {
 	char buffer[JSON_BUFFER_LENGTH];
-	struct Pair root;
+	struct my_json_pair root;
 	const char *array_test = "[\"fuck\", 777, 888, 999, 111]";
-	ASSERT_EQUAL_INT(MY_JSON_STATE_OK, json_parse(&root, array_test));
-	ASSERT_EQUAL_INT(MY_JSON_STATE_OK, json_write(&root, buffer, JSON_BUFFER_LENGTH));
+	ASSERT_EQUAL_INT(MY_JSON_STATE_OK, my_json_parse(&root, array_test));
+	ASSERT_EQUAL_INT(MY_JSON_STATE_OK, my_json_write(&root, buffer, JSON_BUFFER_LENGTH));
 	ASSERT_EQUAL_INT(0, strcmp(buffer, array_test));
 }
 
