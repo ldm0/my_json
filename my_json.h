@@ -28,18 +28,10 @@ struct my_json_string {
 	char *c_str;
 };
 
-union my_json_value_value;
 
-struct my_json_value {
-	enum MY_JSON_TYPE type;
-	union my_json_value_value value;
-};
-
-struct my_json_pair {
-	struct my_json_string key;
-	struct my_json_value value;
-};
-
+struct my_json_value;
+struct my_json_pair;
+	
 struct my_json_array {
 	int length;
 	int capacity;
@@ -61,6 +53,18 @@ union my_json_value_value {
 	// for relatively big number storage like telephone number
 	long long int val_int;
 };
+
+struct my_json_value {
+	enum MY_JSON_TYPE type;
+	union my_json_value_value value;
+};
+
+struct my_json_pair {
+	struct my_json_string key;
+	struct my_json_value value;
+};
+
+
 
 
 // return the real length of the json file
