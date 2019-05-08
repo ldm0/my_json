@@ -17,7 +17,7 @@ enum MY_JSON_STATE c_str_write(char * const c_str, const char * const input)
 }
 
 // pre declaration for write_array and write_object
-enum MY_JSON_STATE write_value(char * const json, const enum MY_JSON_TYPE type, const union my_json_value *value);
+enum MY_JSON_STATE write_value(char * const json, const enum MY_JSON_TYPE type, const union my_json_value_value *value);
 
 static enum MY_JSON_STATE write_null(char * const json)
 {
@@ -48,7 +48,7 @@ error:
 
 static enum MY_JSON_STATE write_object(char * const json, const struct my_json_object * const object)
 {
-    const struct my_json_pair * it = object->root;
+    const struct my_json_pair * it = object->pairs;
     while (it) {
         if (c_str_write(json, it->key.c_str) == MY_JSON_STATE_ERROR)
             goto error;
@@ -105,7 +105,7 @@ error:
 // pre-declaration for write_array_node;
 enum MY_JSON_STATE write_array(char * const json, const struct my_json_array *array);
 
-static enum MY_JSON_STATE write_array_node(char * const json, const struct my_json_array_node * node)
+static enum MY_JSON_STATE write_array_node(char * const json, const struct my_json_value * node)
 {
     if (write_value(json, node->type, &(node->value)) == MY_JSON_STATE_ERROR)
         goto error;
@@ -119,7 +119,7 @@ static enum MY_JSON_STATE write_array(char * const json, const struct my_json_ar
 {
     if (c_str_write(json, "[") == MY_JSON_STATE_ERROR)
         goto error;
-    struct my_json_array_node *it = array->root;
+    struct my_json_value *it = array->values;
     while (it) {
         if (write_array_node(json, it) == MY_JSON_STATE_ERROR)
             goto error;
@@ -137,30 +137,30 @@ error:
     return MY_JSON_STATE_ERROR;
 }
 
-enum MY_JSON_STATE write_value(char * const json, const enum MY_JSON_TYPE type, const union my_json_value *value)
+enum MY_JSON_STATE write_value(char * const json, const enum MY_JSON_TYPE type, const union my_json_value_value *value)
 {
-    if (type == JSON_TYPE_NULL) {
+    if (type == MY_JSON_TYPE_NULL) {
         if (write_null(json) == MY_JSON_STATE_ERROR)
             goto error;
-    } else if (type == JSON_TYPE_TRUE) {
+    } else if (type == MY_JSON_TYPE_TRUE) {
         if (write_true(json) == MY_JSON_STATE_ERROR)
             goto error;
-    } else if (type == JSON_TYPE_FALSE) {
+    } else if (type == MY_JSON_TYPE_FALSE) {
         if (write_false(json) == MY_JSON_STATE_ERROR)
             goto error;
-    } else if (type == JSON_TYPE_OBJECT) {
+    } else if (type == MY_JSON_TYPE_OBJECT) {
         if (write_object(json, &(value->val_object)) == MY_JSON_STATE_ERROR)
             goto error;
-    } else if (type == JSON_TYPE_ARRAY) {
+    } else if (type == MY_JSON_TYPE_ARRAY) {
         if (write_array(json, &(value->val_array)) == MY_JSON_STATE_ERROR)
             goto error;
-    } else if (type == JSON_TYPE_INT) {
+    } else if (type == MY_JSON_TYPE_INT) {
         if (write_int(json, value->val_int) == MY_JSON_STATE_ERROR)
             goto error;
-    } else if (type == JSON_TYPE_DOUBLE) {
+    } else if (type == MY_JSON_TYPE_DOUBLE) {
         if (write_double(json, value->val_double) == MY_JSON_STATE_ERROR)
             goto error;
-    } else if (type == JSON_TYPE_STRING) {
+    } else if (type == MY_JSON_TYPE_STRING) {
         if (write_string(json, &(value->val_string)) == MY_JSON_STATE_ERROR)
             goto error;
     } else {
@@ -171,14 +171,14 @@ error:
     return -1;
 }
 
-int my_json_write(const struct my_json_pair * const root, char * const json, const int json_length)
+int my_json_write(const struct my_json_value * const root, char * const json, const int json_length)
 {
     ptr = 0;
     buffer_length = json_length;
-    if (root->type == JSON_TYPE_ARRAY) {
+    if (root->type == MY_JSON_TYPE_ARRAY) {
         if (write_array(json, &(root->value.val_array)) == MY_JSON_STATE_ERROR)
             goto error;
-    } else if (root->type == JSON_TYPE_OBJECT) {
+    } else if (root->type == MY_JSON_TYPE_OBJECT) {
         if (write_object(json, &(root->value.val_object)) == MY_JSON_STATE_ERROR)
             goto error;
     }

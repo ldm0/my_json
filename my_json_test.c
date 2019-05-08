@@ -231,16 +231,16 @@ void test_parse_json()
 {
 	struct my_json_pair root;
 	ASSERT_EQUAL_INT(0 , my_json_parse(&root, "[666, 777, 888, 999, 111]"));
-	ASSERT_EQUAL_INT(JSON_TYPE_ARRAY, root.type);
-	ASSERT_EQUAL_INT(JSON_TYPE_INT, root.value.val_array.root->type);
+	ASSERT_EQUAL_INT(MY_JSON_TYPE_ARRAY, root.type);
+	ASSERT_EQUAL_INT(MY_JSON_TYPE_INT, root.value.val_array.root->type);
 	ASSERT_EQUAL_INT(666, root.value.val_array.root->value.val_int);
-	ASSERT_EQUAL_INT(JSON_TYPE_INT, root.value.val_array.root->next->type);
+	ASSERT_EQUAL_INT(MY_JSON_TYPE_INT, root.value.val_array.root->next->type);
 	ASSERT_EQUAL_INT(777, root.value.val_array.root->next->value.val_int);
-	ASSERT_EQUAL_INT(JSON_TYPE_INT, root.value.val_array.root->next->next->type);
+	ASSERT_EQUAL_INT(MY_JSON_TYPE_INT, root.value.val_array.root->next->next->type);
 	ASSERT_EQUAL_INT(888, root.value.val_array.root->next->next->value.val_int);
-	ASSERT_EQUAL_INT(JSON_TYPE_INT, root.value.val_array.root->next->next->next->type);
+	ASSERT_EQUAL_INT(MY_JSON_TYPE_INT, root.value.val_array.root->next->next->next->type);
 	ASSERT_EQUAL_INT(999, root.value.val_array.root->next->next->next->value.val_int);
-	ASSERT_EQUAL_INT(JSON_TYPE_INT, root.value.val_array.root->next->next->next->next->type);
+	ASSERT_EQUAL_INT(MY_JSON_TYPE_INT, root.value.val_array.root->next->next->next->next->type);
 	ASSERT_EQUAL_INT(111, root.value.val_array.root->next->next->next->next->value.val_int);
 }
 
