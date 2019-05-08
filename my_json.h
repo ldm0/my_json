@@ -3,6 +3,10 @@
 #ifndef _MY_JSON_H_
 #define _MY_JSON_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum MY_JSON_TYPE {
 	MY_JSON_TYPE_UNKNOWN = -1,
 	MY_JSON_TYPE_NULL,
@@ -71,5 +75,9 @@ struct my_json_pair {
 extern int my_json_parse(struct my_json_value * const root, const char * const json);
 extern int my_json_write(const struct my_json_value * const root, char * const json, const int json_length);
 extern void my_json_free(struct my_json_value * const root);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
