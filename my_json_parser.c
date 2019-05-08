@@ -487,7 +487,7 @@ error:
 	return MY_JSON_STATE_ERROR;
 }
 
-enum MY_JSON_STATE my_json_parse(struct my_json_pair *const root, const char * const json)
+int my_json_parse(struct my_json_pair *const root, const char * const json)
 {
 	ptr = 0;
 	ws_remove(json);

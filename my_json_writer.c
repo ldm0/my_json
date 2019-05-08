@@ -3,8 +3,8 @@
 #include<stdio.h>
 
 // points to the place where the program outputs to.
-static unsigned long long int ptr = 0;
-static unsigned long long int buffer_length = 0;
+static unsigned ptr = 0;
+static unsigned buffer_length = 0;
 
 enum MY_JSON_STATE c_str_write(char * const c_str, const char * const input)
 {
@@ -166,12 +166,12 @@ enum MY_JSON_STATE write_value(char * const json, const enum MY_JSON_TYPE type, 
     } else {
         goto error;
     }
-    return MY_JSON_STATE_OK;
+    return 0;
 error:
-    return MY_JSON_STATE_ERROR;
+    return -1;
 }
 
-enum MY_JSON_STATE my_json_write(const struct my_json_pair * const root, char * const json, const unsigned long long int json_length)
+int my_json_write(const struct my_json_pair * const root, char * const json, const int json_length)
 {
     ptr = 0;
     buffer_length = json_length;
@@ -183,9 +183,9 @@ enum MY_JSON_STATE my_json_write(const struct my_json_pair * const root, char * 
             goto error;
     }
 	if (ptr >= buffer_length)
-		return MY_JSON_STATE_ERROR;
+		goto error;
 	json[ptr++] = (char)0;
-    return MY_JSON_STATE_OK;
+    return ptr;
 error:
-    return MY_JSON_STATE_ERROR;
+    return -1;
 }

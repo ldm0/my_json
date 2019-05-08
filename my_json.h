@@ -61,8 +61,9 @@ struct my_json_pair {
 	union my_json_value value;
 };
 
-extern enum MY_JSON_STATE my_json_parse(struct my_json_pair * const root, const char * const json);
-extern enum MY_JSON_STATE my_json_write(const struct my_json_pair * const root, char * const json, const unsigned long long int json_length);
+// return the real length of the json file
+extern int my_json_parse(struct my_json_pair * const root, const char * const json);
+extern int my_json_write(const struct my_json_pair * const root, char * const json, const int json_length);
 extern void my_json_free(struct my_json_pair * const root);
 
 #endif
