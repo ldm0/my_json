@@ -41,12 +41,12 @@
 // the pointer of where the string is currently parsing
 static int ptr;
 
-void reset_ptr(void)
+static void reset_ptr(void)
 {
 	ptr = 0;
 }
 
-int get_ptr(void)
+static int get_ptr(void)
 {
 	return ptr;
 }
@@ -99,7 +99,7 @@ static int object_pushback(struct my_json_object *const object, const struct my_
 			return -1;
 	}
 
-	//  -1 for the '\0'
+	//  (capacity - 1) for the '\0'
 	if (object->length >= object->capacity - 1) {
 		object->capacity += object->capacity >> 1;
 		struct my_json_pair* new_pairs = (struct my_json_pair*)malloc(object->capacity * sizeof(struct my_json_pair));

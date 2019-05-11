@@ -16,7 +16,7 @@ static int pass_count = 0;
         ++assert_count;\
         if (equality) {\
             ++pass_count;\
-			printf("%dth test Passed(Line: %d)\n", assert_count, __LINE__);\
+			printf("%dth test Passed \t(Line: %d)\n", assert_count, __LINE__);\
         } else {\
             fprintf(stderr, "\nERROR: %s:%d\n"\
             "%dth test:\n"\
@@ -41,191 +41,38 @@ static int pass_count = 0;
         TEST_BASE(equality, "%lf", expect_result, reality_result);\
     } while (0)
 
-/*
 #define ASSERT_EQUAL_STRING(expect, reality)\
 	do {\
-		int equality = (!strcmp(expect, reality));\
-*/
+		const char *expect_result = expect;\
+		const char *reality_result = reality;\
+		int equality = (!strcmp(expect_result, reality_result));\
+        TEST_BASE(equality, "%s", expect_result, reality_result);\
+    } while (0)
 
-
-
-// These tests are single unit test during development.
-// If test, delete static in source code before individual functions
-#ifdef IN_DEVELOPMENT
-
-extern void reset_ptr(void);
-extern unsigned long long int get_ptr(void);
-extern enum PARSE_STATE parse_null(const char * const json);
-extern enum PARSE_STATE parse_false(const char * const json);
-extern enum PARSE_STATE parse_true(const char * const json);
-extern enum PARSE_STATE parse_number(enum JSON_TYPE * type, union Value * value, const char * const json);
-extern enum PARSE_STATE parse_string(struct String * const _string, const char * const json);
-extern enum PARSE_STATE parse_array(struct Array * const _array, const char * const json);
-extern enum PARSE_STATE parse_object(struct Object * const object, const char * const json);
-
-void test_int_ok(const int i, const char * const number)
+void _ws_remove(const char *str, int *ptr)
 {
-	reset_ptr();
-	struct Pair pair;
-	memset(&pair, 0, sizeof(struct Pair));
-	pair.type = JSON_TYPE_UNKNOWN;
-	ASSERT_EQUAL_INT(PARSE_STATE_OK, parse_number(&(pair.type), &(pair.value), number));
-	ASSERT_EQUAL_INT(i, pair.value.val_int);
-	ASSERT_EQUAL_INT(JSON_TYPE_INT, pair.type);
+	while (str[*ptr] == (char)0x20		// space
+		   || str[*ptr] == (char)0x9	// tab
+		   || str[*ptr] == (char)0xA	// CR
+		   || str[*ptr] == (char)0xD)	// LF
+		++ * ptr;
 }
 
-void test_double_ok(const double lf, const char * const number)
+int _json_equal(const char *one, const char *another)
 {
-	reset_ptr();
-	struct Pair pair;
-	memset(&pair, 0, sizeof(struct Pair));
-	pair.type = JSON_TYPE_UNKNOWN;
-	ASSERT_EQUAL_INT(PARSE_STATE_OK, parse_number(&(pair.type), &(pair.value), number));
-	ASSERT_EQUAL_INT(JSON_TYPE_DOUBLE, pair.type);
-	ASSERT_EQUAL_DOUBLE(lf, pair.value.val_double);
+	int one_ptr = 0;
+	int another_ptr = 0;
+	while (one[one_ptr] != 0 || another[another_ptr] != 0) {
+		_ws_remove(one, &one_ptr);
+		_ws_remove(another, &another_ptr);
+		if (one[one_ptr] != another[another_ptr])
+			return -1;
+		++one_ptr;
+		++another_ptr;
+	}
+	return 0;
 }
 
-void test_true_ok(const char *const str)
-{
-	reset_ptr();
-	struct Pair pair;
-	memset(&pair, 0, sizeof(struct Pair));
-	pair.type = JSON_TYPE_UNKNOWN;
-	ASSERT_EQUAL_INT(PARSE_STATE_OK, parse_true(str));
-}
-
-void test_false_ok(const char *const str)
-{
-	reset_ptr();
-	struct Pair pair;
-	memset(&pair, 0, sizeof(struct Pair));
-	ASSERT_EQUAL_INT(PARSE_STATE_OK, parse_false(str));
-}
-
-void test_null_ok(const char *const str)
-{
-	reset_ptr();
-	struct Pair pair;
-	memset(&pair, 0, sizeof(struct Pair));
-	pair.type = JSON_TYPE_UNKNOWN;
-	ASSERT_EQUAL_INT(PARSE_STATE_OK, parse_null(str));
-}
-
-void test_string()
-{
-	struct Pair root;
-
-	reset_ptr();
-	memset(&root, 0, sizeof(struct Pair));
-	ASSERT_EQUAL_INT(PARSE_STATE_OK, parse_string(&(root.value.val_string), "\"666777888999\""));
-	ASSERT_EQUAL_INT(12, root.value.val_string.length);
-}
-
-void test_array()
-{
-	struct Pair root;
-
-	reset_ptr();
-	memset(&root, 0, sizeof(struct Pair));
-	ASSERT_EQUAL_INT(PARSE_STATE_OK, parse_array(&(root.value.val_array), "[]"));
-
-	reset_ptr();
-	memset(&root, 0, sizeof(struct Pair));
-	ASSERT_EQUAL_INT(PARSE_STATE_OK, parse_array(&(root.value.val_array), "[1, 2]"));
-	ASSERT_EQUAL_INT(JSON_TYPE_INT, root.value.val_array.root->type);
-	ASSERT_EQUAL_INT(1, root.value.val_array.root->value.val_int);
-	ASSERT_EQUAL_INT(JSON_TYPE_INT, root.value.val_array.root->next->type);
-	ASSERT_EQUAL_INT(2, root.value.val_array.root->next->value.val_int);
-
-	reset_ptr();
-	memset(&root, 0, sizeof(struct Pair));
-	ASSERT_EQUAL_INT(PARSE_STATE_OK, parse_array(&(root.value.val_array), "[666]"));
-	ASSERT_EQUAL_INT(666, root.value.val_array.root->value.val_int);
-
-	reset_ptr();
-	memset(&root, 0, sizeof(struct Pair));
-	ASSERT_EQUAL_INT(PARSE_STATE_OK, parse_array(&(root.value.val_array), "[9.99, \"haoha\", 4]"));
-	ASSERT_EQUAL_INT(JSON_TYPE_DOUBLE, root.value.val_array.root->type);
-	ASSERT_EQUAL_DOUBLE(9.99, root.value.val_array.root->value.val_double);
-	ASSERT_EQUAL_INT(JSON_TYPE_STRING, root.value.val_array.root->next->type);
-	ASSERT_EQUAL_INT(5, root.value.val_array.root->next->value.val_string.length);
-	ASSERT_EQUAL_INT(JSON_TYPE_INT, root.value.val_array.root->next->next->type);
-	ASSERT_EQUAL_INT(4, root.value.val_array.root->next->next->value.val_int);
-
-}
-
-void test_number()
-{
-	test_int_ok(-100, "-100");
-	test_int_ok(100, "100");
-	test_int_ok(10, "10");
-
-	test_int_ok(INT_MAX, "2147483647");
-	test_int_ok(INT_MIN, "-2147483648");
-	test_double_ok(10000, "100E02");
-	test_double_ok(100000, "100E+03");
-	test_double_ok(-10100000., "-1.01e7");
-	// This test need special attention
-	// I'm not sure is it a double, but for program simplicity, assume it as a double
-	test_double_ok(10., "100E-01");
-	test_double_ok(100., "100.0");
-
-	test_double_ok(10.678, "10.678");
-	test_double_ok(-100., "-100.0");
-	test_double_ok(0.1, "1E-01");
-	test_double_ok(0.1, "1e-1");
-	test_double_ok(-0.1, "-1e-1");
-
-	test_double_ok(-0.00000112, "-1.12e-6");
-	test_double_ok(-1.12e-666, "-1.12e-666");
-	test_double_ok(-1.12e-666, "-1.12e-0666");
-	test_double_ok(1.0000000000000002, "1.0000000000000002");
-	// minimum denormal
-	test_double_ok(4.9406564584124654e-324, "4.9406564584124654e-324");
-
-	test_double_ok(-4.9406564584124654e-324, "-4.9406564584124654e-324");
-	// Max subnormal double
-	test_double_ok(2.2250738585072009e-308, "2.2250738585072009e-308");
-	test_double_ok(-2.2250738585072009e-308, "-2.2250738585072009e-308");
-	// Min normal positive double
-	test_double_ok(2.2250738585072014e-308, "2.2250738585072014e-308");
-	test_double_ok(-2.2250738585072014e-308, "-2.2250738585072014e-308");
-
-	// cannot support max double because the double inner mechanism(lazy) XP
-	// test_double_ok(1.7976931348623157e+308, "1.7976931348623157e+308");
-	// test_double_ok(-1.7976931348623157e+308, "-1.7976931348623157e+308");
-}
-
-void test_object()
-{
-	reset_ptr();
-	struct Pair root;
-	memset(&root, 0, sizeof(struct Pair));
-	ASSERT_EQUAL_INT(PARSE_STATE_OK, parse_object(&(root.value.val_object), "{ \"hahaha\" : \"fuck\", \"emm\" : null}"));
-	// length of hahaha
-	ASSERT_EQUAL_INT(6, root.value.val_object.root->key.length);
-	// length of fuck
-	ASSERT_EQUAL_INT(4, root.value.val_object.root->value.val_string.length);
-	// length of emm
-	ASSERT_EQUAL_INT(3, root.value.val_object.root->next->key.length);
-	// type of emm
-	ASSERT_EQUAL_INT(JSON_TYPE_NULL, root.value.val_object.root->next->type);
-}
-
-void test_true_false_null()
-{
-	// does not test string with leading ws because function assumes no leading ws
-	test_true_ok("true");
-	test_true_ok("true  ");
-
-	test_false_ok("false");
-	test_false_ok("false  ");
-
-	test_null_ok("null");
-	test_null_ok("null  ");
-}
-
-#endif
 
 void test_parse_json_0()
 {
@@ -250,7 +97,7 @@ void test_parse_json_1()
 	ASSERT_EQUAL_INT(MY_JSON_TYPE_ARRAY, root.type);
 	ASSERT_EQUAL_INT(5, root.value.val_array.length);
 	ASSERT_EQUAL_INT(MY_JSON_TYPE_STRING, root.value.val_array.values[0].type);
-	ASSERT_EQUAL_INT(0, strcmp(root.value.val_array.values[0].value.val_string.c_str, "emm"));
+	ASSERT_EQUAL_STRING(root.value.val_array.values[0].value.val_string.c_str, "emm");
 	ASSERT_EQUAL_INT(MY_JSON_TYPE_DOUBLE, root.value.val_array.values[1].type);
 	ASSERT_EQUAL_INT(MY_JSON_TYPE_TRUE, root.value.val_array.values[2].type);
 	ASSERT_EQUAL_INT(MY_JSON_TYPE_INT, root.value.val_array.values[3].type);
@@ -266,13 +113,12 @@ void test_parse_json_2()
 	ASSERT_EQUAL_INT(0, my_json_parse(&root, "{\"name\" : \"donoughliu\", \"male\" : true, \"height\" : 186.3, \"money_remain\" : false, \"grade\" : 2}"));
 	ASSERT_EQUAL_INT(MY_JSON_TYPE_OBJECT, root.type);
 	ASSERT_EQUAL_INT(5, root.value.val_object.length);
-	ASSERT_EQUAL_INT(0, strcmp(root.value.val_object.pairs[0].key.c_str, "name"));
-	ASSERT_EQUAL_INT(0, strcmp(root.value.val_object.pairs[1].key.c_str, "male"));
-	ASSERT_EQUAL_INT(0, strcmp(root.value.val_object.pairs[2].key.c_str, "height"));
-	ASSERT_EQUAL_INT(0, strcmp(root.value.val_object.pairs[3].key.c_str, "money_remain"));
-	ASSERT_EQUAL_INT(0, strcmp(root.value.val_object.pairs[4].key.c_str, "grade"));
-
-	ASSERT_EQUAL_INT(0, strcmp(root.value.val_object.pairs[0].value.value.val_string.c_str, "donoughliu"));
+	ASSERT_EQUAL_STRING(root.value.val_object.pairs[0].key.c_str, "name");
+	ASSERT_EQUAL_STRING(root.value.val_object.pairs[1].key.c_str, "male");
+	ASSERT_EQUAL_STRING(root.value.val_object.pairs[2].key.c_str, "height");
+	ASSERT_EQUAL_STRING(root.value.val_object.pairs[3].key.c_str, "money_remain");
+	ASSERT_EQUAL_STRING(root.value.val_object.pairs[4].key.c_str, "grade");
+	ASSERT_EQUAL_STRING(root.value.val_object.pairs[0].value.value.val_string.c_str, "donoughliu");
 	ASSERT_EQUAL_INT(MY_JSON_TYPE_TRUE, root.value.val_object.pairs[1].value.type);
 	ASSERT_EQUAL_INT(MY_JSON_TYPE_DOUBLE, root.value.val_object.pairs[2].value.type);
 	ASSERT_EQUAL_INT(MY_JSON_TYPE_FALSE, root.value.val_object.pairs[3].value.type);
@@ -291,40 +137,33 @@ void test_parse_json()
 
 void test_write_json()
 {
-	char buffer[JSON_BUFFER_LENGTH];
-	struct my_json_value root;
-	ASSERT_EQUAL_INT(0, my_json_parse(&root, "[666, 777, 888, 999, 111]"));
-	ASSERT_EQUAL_INT(0, my_json_write(&root, buffer, JSON_BUFFER_LENGTH) < 0);
-	my_json_free(&root);
-	ASSERT_EQUAL_INT(0, strcmp(buffer, "[666, 777, 888, 999, 111]"));
-}
-
-void test_parse_write_json()
-{
-	char buffer[JSON_BUFFER_LENGTH];
+	char buffer[JSON_BUFFER_LENGTH] = {0};
 	struct my_json_value root;
 	const char *array_test = "[\"fuck\", 777, 888, 999, 111]";
 	ASSERT_EQUAL_INT(0, my_json_parse(&root, array_test));
 	ASSERT_EQUAL_INT(0, my_json_write(&root, buffer, JSON_BUFFER_LENGTH) < 0);
+	my_json_free(&root);
 	ASSERT_EQUAL_INT(0, strcmp(buffer, array_test));
+}
+
+void test_parse_write_json()
+{
+	char buffer[JSON_BUFFER_LENGTH] = {0};
+	struct my_json_value root;
+	const char *array_test = "[\"fuck\", 777, 888, 999, 111]";
+	ASSERT_EQUAL_INT(0, my_json_parse(&root, array_test));
+	ASSERT_EQUAL_INT(0, my_json_write(&root, buffer, JSON_BUFFER_LENGTH) < 0);
+	ASSERT_EQUAL_INT(0, _json_equal(buffer, array_test));
 	my_json_free(&root);
 }
 
+// These are test when library are substantially built up.
 void test_all()
 {
-#ifdef IN_DEVELOPMENT
-	test_number();
-	test_true_false_null();
-	test_array();
-	test_string();
-	test_object();
-#endif
 	test_parse_json();
 	test_write_json();
 	test_parse_write_json();
 }
-// These are test when library are substantially built up.
-
 
 int main()
 {
