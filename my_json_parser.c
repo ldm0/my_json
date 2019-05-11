@@ -461,8 +461,10 @@ static enum MY_JSON_STATE parse_object(struct my_json_object * const object, con
 		ws_remove(json);
 
 		// parse the value of the pair
-		if (parse_value(&(pair.value), json) == MY_JSON_STATE_ERROR)
+		if (parse_value(&(pair.value), json) == MY_JSON_STATE_ERROR) {
+			int a = ptr;
 			goto error;
+		}
 		ws_remove(json);
 
 		if (object_pushback(object, &pair) != 0)
@@ -485,6 +487,8 @@ static enum MY_JSON_STATE parse_object(struct my_json_object * const object, con
 #endif
 		}
 	}
+	assert(json[ptr] == '}');
+	++ptr;
 
 	return MY_JSON_STATE_OK;
 error:
