@@ -135,7 +135,7 @@ void test_parse_json()
 	test_parse_json_2();
 }
 
-void test_write_json()
+void test_write_json_0()
 {
 	char buffer[JSON_BUFFER_LENGTH] = {0};
 	struct my_json_value root;
@@ -143,7 +143,12 @@ void test_write_json()
 	ASSERT_EQUAL_INT(0, my_json_parse(&root, array_test));
 	ASSERT_EQUAL_INT(0, my_json_write(&root, buffer, JSON_BUFFER_LENGTH) < 0);
 	my_json_free(&root);
-	ASSERT_EQUAL_INT(0, strcmp(buffer, array_test));
+	ASSERT_EQUAL_STRING(buffer, array_test);
+}
+
+void test_write_json()
+{
+	test_write_json_0();
 }
 
 void test_parse_write_json()
@@ -168,6 +173,6 @@ void test_all()
 int main()
 {
 	test_all();
-	fprintf(stdout, "Test end!\nPass rate %d/%d(%3.2f%%).\n", pass_count, assert_count, 100.f * pass_count / assert_count);
+	fprintf(stdout, "Test result\nPass rate: %d/%d(%3.2f%%).\n", pass_count, assert_count, 100.f * pass_count / assert_count);
 	return 0;
 }
