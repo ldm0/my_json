@@ -89,7 +89,7 @@ static enum MY_JSON_STATE write_object(char * const json, const struct my_json_o
 		goto error;
 	if (length) {
 		for (int i = 0;;) {
-			if (c_str_write(json, object->pairs[i].key.c_str) == MY_JSON_STATE_ERROR)
+			if (write_string(json, &(object->pairs[i].key)) == MY_JSON_STATE_ERROR)
 				goto error;
 			if (c_str_write(json, " : ") == MY_JSON_STATE_ERROR)
 				goto error;

@@ -28,9 +28,9 @@ static int pass_count = 0;
 // to avoid call one function twice, use tmp location to store result
 #define ASSERT_EQUAL_INT(expect, reality)\
     do {\
-        long long int expect_result = expect;\
-        long long int reality_result = reality;\
-        TEST_BASE(expect_result == reality_result, "%lld", expect_result, reality_result);\
+        long long int _expect_result = expect;\
+        long long int _reality_result = reality;\
+        TEST_BASE(_expect_result == _reality_result, "%lld", _expect_result, _reality_result);\
     } while (0)
 
 #define ASSERT_EQUAL_DOUBLE(expect, reality)\
@@ -87,7 +87,7 @@ void test_parse_json_0()
 	ASSERT_EQUAL_INT(888, root.value.val_array.values[2].value.val_int);
 	ASSERT_EQUAL_INT(999, root.value.val_array.values[3].value.val_int);
 	ASSERT_EQUAL_INT(111, root.value.val_array.values[4].value.val_int);
-	my_json_free(&root);
+	my_json_free_document(&root);
 }
 
 void test_parse_json_1()
@@ -104,7 +104,7 @@ void test_parse_json_1()
 	ASSERT_EQUAL_INT(999, root.value.val_array.values[3].value.val_int);
 	ASSERT_EQUAL_INT(MY_JSON_TYPE_INT, root.value.val_array.values[4].type);
 	ASSERT_EQUAL_INT(111, root.value.val_array.values[4].value.val_int);
-	my_json_free(&root);
+	my_json_free_document(&root);
 }
 
 void test_parse_json_2()
@@ -124,7 +124,7 @@ void test_parse_json_2()
 	ASSERT_EQUAL_INT(MY_JSON_TYPE_FALSE, root.value.val_object.pairs[3].value.type);
 	ASSERT_EQUAL_INT(MY_JSON_TYPE_INT, root.value.val_object.pairs[4].value.type);
 	ASSERT_EQUAL_INT(2, root.value.val_object.pairs[4].value.value.val_int);
-	my_json_free(&root);
+	my_json_free_document(&root);
 }
 
 
@@ -142,13 +142,42 @@ void test_write_json_0()
 	const char *array_test = "[\"fuck\", 777, 888, 999, 111]";
 	ASSERT_EQUAL_INT(0, my_json_parse(&root, array_test));
 	ASSERT_EQUAL_INT(0, my_json_write(&root, buffer, JSON_BUFFER_LENGTH) < 0);
-	my_json_free(&root);
-	ASSERT_EQUAL_STRING(buffer, array_test);
+	my_json_free_document(&root);
+	ASSERT_EQUAL_INT(0, _json_equal(buffer, array_test));
+}
+
+void test_write_json_1()
+{
+	char buffer[JSON_BUFFER_LENGTH] = {0};
+	const char *expect_result = "{ \"haha\" : \"abc\", \"emm\" : \"abcd\" }";
+	struct my_json_value root;
+	my_json_value_init(&root);
+	root.type = MY_JSON_TYPE_OBJECT;
+	struct my_json_value abc, abcd;
+	my_json_value_init(&abc);
+	my_json_value_init(&abcd);
+	abc.type = MY_JSON_TYPE_STRING;
+	abcd.type = MY_JSON_TYPE_STRING;
+	my_json_string_pushback(&abc.value.val_string, 'a');
+	my_json_string_pushback(&abc.value.val_string, 'b');
+	my_json_string_pushback(&abc.value.val_string, 'c');
+	my_json_string_duplicate(&abcd.value.val_string, &abc.value.val_string);
+	my_json_string_pushback(&abcd.value.val_string, 'd');
+	my_json_object_set_value(&root.value.val_object, "haha", &abc);
+	my_json_object_set_value(&root.value.val_object, "emm", &abcd);
+	ASSERT_EQUAL_INT(0, my_json_write(&root, buffer, JSON_BUFFER_LENGTH) < 0);
+	ASSERT_EQUAL_INT(0, _json_equal(buffer, expect_result));
+	struct my_json_value get_value;
+	my_json_object_get_value(&root.value.val_object, "emm", &get_value);
+	ASSERT_EQUAL_INT(MY_JSON_TYPE_STRING, get_value.type);
+	ASSERT_EQUAL_INT(0, strcmp(get_value.value.val_string.c_str, "abcd"));
+	my_json_free_document(&root);
 }
 
 void test_write_json()
 {
 	test_write_json_0();
+	test_write_json_1();
 }
 
 void test_parse_write_json()
@@ -159,7 +188,7 @@ void test_parse_write_json()
 	ASSERT_EQUAL_INT(0, my_json_parse(&root, array_test));
 	ASSERT_EQUAL_INT(0, my_json_write(&root, buffer, JSON_BUFFER_LENGTH) < 0);
 	ASSERT_EQUAL_INT(0, _json_equal(buffer, array_test));
-	my_json_free(&root);
+	my_json_free_document(&root);
 }
 
 // These are test when library are substantially built up.

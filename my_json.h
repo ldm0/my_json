@@ -7,18 +7,7 @@
 extern "C" {
 #endif
 
-enum MY_JSON_TYPE {
-	MY_JSON_TYPE_UNKNOWN = -1,
-	MY_JSON_TYPE_NULL,
-	MY_JSON_TYPE_TRUE,
-	MY_JSON_TYPE_FALSE,
-	MY_JSON_TYPE_OBJECT,
-	MY_JSON_TYPE_ARRAY,
-	MY_JSON_TYPE_INT,
-	MY_JSON_TYPE_DOUBLE,
-	MY_JSON_TYPE_STRING,
-	NUM_JSON_TYPE
-};
+#include"my_json_type.h"
 
 enum MY_JSON_STATE {
 	MY_JSON_STATE_ERROR = -1,
@@ -26,55 +15,18 @@ enum MY_JSON_STATE {
 	NUM_MY_JSON_STATE
 };
 
-struct my_json_string {
-	int length;
-	int capacity;
-	char *c_str;
-};
+extern void my_json_set_allocator(
+	void *(*_malloc)(int),
+	void (*_free)(void *));
 
-
-struct my_json_value;
-struct my_json_pair;
-	
-struct my_json_array {
-	int length;
-	int capacity;
-	struct my_json_value *values;
-};
-
-struct my_json_object {
-	int length; 
-	int capacity;
-	struct my_json_pair *pairs;
-};
-
-union my_json_value_value {
-	struct my_json_string val_string;
-	struct my_json_array val_array;
-	struct my_json_object val_object;
-	double val_double;
-	// Attention! the integer is actually pretty long
-	// for relatively big number storage like telephone number
-	long long int val_int;
-};
-
-struct my_json_value {
-	enum MY_JSON_TYPE type;
-	union my_json_value_value value;
-};
-
-struct my_json_pair {
-	struct my_json_string key;
-	struct my_json_value value;
-};
-
-
-
-
-// return the real length of the json file
+// return the real length of the json file, if failed return -1;
 extern int my_json_parse(struct my_json_value * const root, const char * const json);
 extern int my_json_write(const struct my_json_value * const root, char * const json, const int json_length);
-extern void my_json_free(struct my_json_value * const root);
+extern void my_json_free_document(struct my_json_value * const root);
+
+extern int my_json_object_set_value(struct my_json_object * const object, const char *_key, const struct my_json_value *_value);
+extern int my_json_object_get_value(const struct my_json_object * const object, const char *_key, struct my_json_value *_value);
+extern int my_json_string_duplicate(struct my_json_string *const destination, const struct my_json_string *const source);
 
 #ifdef __cplusplus
 }
