@@ -1,4 +1,4 @@
-#include"src/my_json.h"
+#include"../src/my_json.h"
 #include"gtest/gtest.h"
 
 TEST(json_parse, 0)

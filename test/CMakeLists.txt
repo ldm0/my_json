@@ -24,8 +24,8 @@ add_subdirectory(
     EXCLUDE_FROM_ALL)
 # end googletest module
 
-add_library(my_json_parser_lib ./src/my_json_parser.c)
-add_library(my_json_writer_lib ./src/my_json_writer.c)
-add_library(my_json_type_lib ./src/my_json_type.c)
+add_library(my_json_parser_lib ../src/my_json_parser.c)
+add_library(my_json_writer_lib ../src/my_json_writer.c)
+add_library(my_json_type_lib ../src/my_json_type.c)
 add_executable(my_json_test my_json_test.cpp)
 target_link_libraries(my_json_test gtest_main my_json_parser_lib my_json_writer_lib my_json_type_lib)
